@@ -31,12 +31,12 @@ class Student(models.Model):
     year_choices = ['UG1', 'UG2', 'UG3', 'UG4', 'PG1', 'PG1']
     course_choices = ['CSE','IT','ECE','MECH','CIVIL','EE']
     student_name = models.CharField(max_length=200, null=True)
-    father_name = models.CharField(max_length=200, null=True)
+    student_mobile = models.CharField(max_length=11)
     enrollment_no = models.CharField(max_length=10, unique=True, null=True)
     student_gender = models.CharField(choices=gender_choices,max_length=1,default=None,null=True)
     student_year = models.CharField(choices=year_choices,max_length=1,default=None,null=True)
     student_course = models.CharField(choices=course_choices,max_length=8,default=None)
-    student_room_no = models.ForeignKey(Room)
+    student_room_no = models.ForeignKey(Room,on_delete=models.CASCADE)
     room_allotted = models.BooleanField(default=False)
 
     def str(self):
