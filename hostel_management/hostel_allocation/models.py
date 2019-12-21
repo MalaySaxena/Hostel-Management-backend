@@ -17,7 +17,8 @@ class HostelAllocation(models.Model):
 class Room(models.Model):
     type = [('S', 'Single Occupancy'), ('D', 'Double Occupancy'), ('P', 'Reserved for Research Scholars'),('B', 'Both Single and Double Occupancy')]
     luxury = ['AC','Non AC']
-    room_no = models.IntegerField()
+
+    room_no = models.CharField(max_length=5)
     room_type = models.CharField(choices=type, max_length=1, default=None)
     room_luxury = models.CharField(choices=luxury, max_length=10, default=None)
     is_room_vacant = models.BooleanField(default=False)
@@ -35,6 +36,7 @@ class Student(models.Model):
     student_gender = models.CharField(choices=gender_choices,max_length=1,default=None,null=True)
     student_year = models.CharField(choices=year_choices,max_length=1,default=None,null=True)
     student_course = models.CharField(choices=course_choices,max_length=8,default=None)
+    student_room_no = models.ForeignKey(Room)
     room_allotted = models.BooleanField(default=False)
 
     def str(self):
