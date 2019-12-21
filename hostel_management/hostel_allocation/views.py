@@ -1,113 +1,270 @@
 from django.shortcuts import render
 from .models import HostelAllocation,Room,Student
-'''
-# Create your views here.
-all_student = Student.objects.all()
+
+def checkAC(request,wing,stud,type,ac):
+
+    no_of_room = wing.hostel_no_of_room/wing.hostel_no_of_floor
+
+    if type == "S" :
+        acFloor = ((wing.hostel_no_of_floor - 1) * 0.25)  # convert to int
+        subtract = wing.hostel_no_of_floor - acFloor
+        rooms = Room.objects.filter(hostel=wing, is_room_vacant=0)
+        if ac == "AC" :
+            if stud.physical_problem == True :
+
+                for r in rooms :
+                    if r.room_no-101 < no_of_room/2:
+                        stud.student_room_no = r.room_no
+                        stud.room_allotted = True
+                        r.is_room_vacant = 1
+                        res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                        return render(request, 'index.html', context=res)
+
+            else :
+                low = subtract*100+1;
+                high = wing.hostel_no_of_floor*100 + no_of_room
+                for r in rooms :
+                    if r.room_no > low and r. room_no < high:
+                        stud.student_room_no = r.room_no
+                        stud.room_allotted = True
+                        r.is_room_vacant = 1
+                        res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                        return render(request, 'index.html', context=res)
+
+        else :
+            if stud.physical_problem == True :
+                for r in rooms :
+                    if r.room_no-100 > no_of_room/2 and r.room_no-100<101+no_of_room:
+                        stud.student_room_no = r.room_no
+                        stud.room_allotted = True
+                        r.is_room_vacant = 1
+                        res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                        return render(request, 'index.html', context=res)
+
+            else :
+                low = 2 * 100 + 1;
+                high = subtract*100 + no_of_room
+                for r in rooms:
+                    if r.room_no > low and r.room_no < high:
+                        stud.student_room_no = r.room_no
+                        stud.room_allotted = True
+                        r.is_room_vacant = 1
+                        res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                        return render(request, 'index.html', context=res)
+
+    else :
+        stu = Student.objects.filter(student_branch=stud.branch, student_gender = stud.gender)
+        max_gpa = max(stu.student_gpa)
+        percentile_list = {}
+        for s in stu:
+            percentile_list[s.enrollment_no]=(s.student_gpa/max_gpa * 100)
+
+        no_of_room = wing.hostel_no_of_room / wing.hostel_no_of_floor
+
+        acFloor = ((wing.hostel_no_of_floor - 1) * 0.25)  # convert to int
+        subtract = wing.hostel_no_of_floor - acFloor
+        rooms = Room.objects.filter(hostel=wing, is_room_vacant=(0 or 1))
+        if rooms.is_room_vacant==0:
+            if ac == "AC":
+                if stud.physical_problem == True:
+                    for r in rooms:
+                        if r.room_no - 101 < no_of_room / 2:
+                            stud.student_room_no = r.room_no
+                            stud.room_allotted = True
+                            r.is_room_vacant = 1
+                            res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                            return render(request, 'index.html', context=res)
+
+                else:
+                    low = subtract * 100 + 1;
+                    high = wing.hostel_no_of_floor * 100 + no_of_room
+                    for r in rooms:
+                        if r.room_no > low and r.room_no < high:
+                            stud.student_room_no = r.room_no
+                            stud.room_allotted = True
+                            r.is_room_vacant = 1
+                            res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                            return render(request, 'index.html', context=res)
+
+            else:
+                if stud.physical_problem == True:
+                    for r in rooms:
+                        if r.room_no - 100 > no_of_room / 2 and r.room_no - 100 < 101 + no_of_room:
+                            stud.student_room_no = r.room_no
+                            stud.room_allotted = True
+                            r.is_room_vacant = 1
+                            res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                            return render(request, 'index.html', context=res)
+                else:
+                    low = 2 * 100 + 1;
+                    high = subtract * 100 + no_of_room
+                    for r in rooms:
+                        if r.room_no > low and r.room_no < high:
+                            stud.student_room_no = r.room_no
+                            stud.room_allotted = True
+                            r.is_room_vacant = 1
+                            res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                            return render(request, 'index.html', context=res)
+
+        elif rooms.is_room_vacant==1:
+
+            if ac == "AC":
+                flag=0
+                if stud.physical_problem == True:
+                    for r in rooms:
+                        s = stu.filter(student_room_no=r.room_no)
+                        if r.room_no - 101 < no_of_room / 2:
+                            if percentile_list[s.enrollment_no] - percentile_list[stud.enrollment_no] < 30:
+                                flag = 0
+                                stud.room_allotted = True
+                                r.is_room_vacant = 2
+                                res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                                return render(request, 'index.html', context=res)
+                            else:
+                                flag=1
+
+                    if flag == 1:
+                        for r in rooms:
+                            s = stu.filter(student_room_no=r.room_no)
+                            if r.room_no - 101 < no_of_room / 2:
+                                if percentile_list[s.enrollment_no] - percentile_list[stud.enrollment_no] < 40:
+                                    flag = 0
+                                    stud.room_allotted = True
+                                    r.is_room_vacant = 2
+                                    res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                                    return render(request, 'index.html', context=res)
+                                else:
+                                    flag = 2
+                    if flag == 2:
+                        for r in (-rooms):
+                            s = stu.filter(student_room_no=r.room_no)
+                            if r.room_no - 101 < no_of_room / 2:
+                                flag = 0
+                                stud.room_allotted = True
+                                r.is_room_vacant = 2
+                                res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                                return render(request, 'index.html', context=res)
+
+                else:
+                    flag=0
+                    low = subtract * 100 + 1;
+                    high = wing.hostel_no_of_floor * 100 + no_of_room
+                    for r in rooms:
+                        if r.room_no > low and r.room_no < high:
+                            s = stu.filter(student_room_no=r.room_no)
+                            if r.room_no - 101 < no_of_room / 2:
+                                if percentile_list[s.enrollment_no] - percentile_list[stud.enrollment_no] < 30:
+                                    flag = 0
+                                    stud.room_allotted = True
+                                    r.is_room_vacant = 2
+                                    res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                                    return render(request, 'index.html', context=res)
+                                else:
+                                    flag = 1
+
+                    if flag == 1:
+                        for r in rooms:
+                            s = stu.filter(student_room_no=r.room_no)
+                            if r.room_no - 101 < no_of_room / 2:
+                                if percentile_list[s.enrollment_no] - percentile_list[stud.enrollment_no] < 40:
+                                    flag = 0
+                                    stud.room_allotted = True
+                                    r.is_room_vacant = 2
+                                    res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                                    return render(request, 'index.html', context=res)
+                                else:
+                                    flag = 2
+                    if flag == 2:
+                        for r in (-rooms):
+                            s = stu.filter(student_room_no=r.room_no)
+                            if r.room_no - 101 < no_of_room / 2:
+                                flag = 0
+                                stud.room_allotted = True
+                                r.is_room_vacant = 2
+                                res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                                return render(request, 'index.html', context=res)
+
+            else:
+                if stud.physical_problem == True:
+                    flag = 0
+                    if stud.physical_problem == True:
+                        for r in rooms:
+                            s = stu.filter(student_room_no=r.room_no)
+                            if r.room_no - 101 < no_of_room / 2:
+                                if percentile_list[s.enrollment_no] - percentile_list[stud.enrollment_no] < 30:
+                                    flag = 0
+                                    stud.room_allotted = True
+                                    r.is_room_vacant = 2
+                                    res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                                    return render(request, 'index.html', context=res)
+                                else:
+                                    flag = 1
+
+                        if flag == 1:
+                            for r in rooms:
+                                s = stu.filter(student_room_no=r.room_no)
+                                if r.room_no - 101 < no_of_room / 2:
+                                    if percentile_list[s.enrollment_no] - percentile_list[stud.enrollment_no] < 40:
+                                        flag = 0
+                                        stud.room_allotted = True
+                                        r.is_room_vacant = 2
+                                        res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                                        return render(request, 'index.html', context=res)
+                                    else:
+                                        flag = 2
+                        if flag == 2:
+                            for r in (-rooms):
+                                s = stu.filter(student_room_no=r.room_no)
+                                if r.room_no - 101 < no_of_room / 2:
+                                    flag = 0
+                                    stud.room_allotted = True
+                                    r.is_room_vacant = 2
+                                    res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                                    return render(request, 'index.html', context=res)
+
+                else:
+                    flag=0
+                    low = 2 * 100 + 1;
+                    high = subtract * 100 + no_of_room
+                    for r in rooms:
+                        if r.room_no > low and r.room_no < high:
+                            s = stu.filter(student_room_no=r.room_no)
+                            if r.room_no - 101 < no_of_room / 2:
+                                if percentile_list[s.enrollment_no] - percentile_list[stud.enrollment_no] < 30:
+                                    flag = 0
+                                    stud.room_allotted = True
+                                    r.is_room_vacant = 2
+                                    res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                                    return render(request, 'index.html', context=res)
+                                else:
+                                    flag = 1
+
+                    if flag == 1:
+                        for r in rooms:
+                            s = stu.filter(student_room_no=r.room_no)
+                            if r.room_no - 101 < no_of_room / 2:
+                                if percentile_list[s.enrollment_no] - percentile_list[stud.enrollment_no] < 40:
+                                    flag = 0
+                                    stud.room_allotted = True
+                                    r.is_room_vacant = 2
+                                    res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                                    return render(request, 'index.html', context=res)
+                                else:
+                                    flag = 2
+                    if flag == 2:
+                        for r in (-rooms):
+                            s = stu.filter(student_room_no=r.room_no)
+                            if r.room_no - 101 < no_of_room / 2:
+                                flag = 0
+                                stud.room_allotted = True
+                                r.is_room_vacant = 2
+                                res = {'name': stud, 'wing': wing, 'room': r.room_no}
+                                return render(request, 'index.html', context=res)
+
 def checkAvaibility(request, enroll, roomType, luxury):
     student = Student.objects.filter(enrollment_no=enroll)
     branch = student.student_course
     gender = student.student_gender
-    hostell = HostelAllocation.objects.filter(hostel_course=branch, hostel_gender=gender)
+    hostel_matched = HostelAllocation.objects.filter(hostel_course=branch, hostel_gender=gender,rooms_type=roomType)
 
-    #checkRooms(roomtype,luxury,student,hostell)
-    if (roomType == "S"):
-        room_of_s = hostell.objetcs.filter(roomsType='S')
-        no_of_room = room_of_s.no_of_room / room_of_s.no_of_floor
-        if(luxury == "AC"):
-
-
-            if student.physical_problem == True:
-                rooms = Room.objects.order_by(room_no)
-                for r in rooms:
-                    if(r.room_no<no_of_room/2):
-
-                        if(r.is_room_vacant):
-                            student.student_room_no=r.room_no+101
-                            student.room_allotted=True
-                            r.is_room_vacant=False
-                        else:
-                            #need to complete
-                            pass
-                    else:
-                        if (r.is_room_vacant):
-                            student.student_room_no = r.room_no + 101
-                            student.room_allotted = True
-                            r.is_room_vacant = False
-                        else:
-                            # need to complete
-                            pass
-            else:
-                rooms = Room.objects.order_by(-room_no)
-                var = int((room_of_s.no_of_floor-1)*(0.25))
-                for i in range(room_of_s.no_of_floor,room_of_s.no_of_floor-var):
-                    if (r.is_room_vacant):
-                        student.student_room_no = r.room_no + 100*i+1
-                        student.room_allotted = True
-                        r.is_room_vacant = False
-                    else:
-                        # need to complete
-                        pass
-
-    if (roomType == "D"):
-        room_of_d = hostell.objetcs.filter(roomsType='D')
-        no_of_room = room_of_d.no_of_room / room_of_d.no_of_floor
-        if (luxury == "AC"):
-
-            if student.physical_problem == True:
-                rooms = Room.objects.order_by(room_no)
-                for r in rooms:
-                    if (r.room_no < no_of_room / 2):
-                        if (r.is_room_vacant):
-                            count = 0
-                            temp_student = all_student.objects.filter(student_room_no=r.room_no)
-                            for i in temp_student:
-                                count = count+1
-
-                            if count<2:
-                                student.student_room_no = r.room_no + 101
-                                student.room_allotted = True
-                                r.is_room_vacant = False
-                            else:
-                                #
-                                pass
-
-                        else:
-                            # need to complete
-                            pass
-                    else:
-                        if (r.is_room_vacant):
-                            count = 0
-                            temp_student = all_student.objects.filter(student_room_no=r.room_no)
-                            for i in temp_student:
-                                count = count + 1
-
-                            if count < 2:
-                                student.student_room_no = r.room_no + 101
-                                student.room_allotted = True
-                                r.is_room_vacant = False
-                            else:
-                                #
-                                pass
-
-                        else:
-                            # need to complete
-                            pass
-            else:
-                rooms = Room.objects.order_by(-room_no)
-                var = int((room_of_s.no_of_floor - 1) * (0.25))
-                for i in range(room_of_s.no_of_floor, room_of_s.no_of_floor - var):
-                    if (r.is_room_vacant):
-                        student.student_room_no = r.room_no + 100*i+1
-                        student.room_allotted = True
-                        r.is_room_vacant = False
-                    else:
-                        # need to complete
-                        pass
-
-'''
-
-    '''
-    if student.physical_problem == True:
-        student.student_room_no = 0
-        student.student_room_no += 100
-    '''
+    checkAC(request,hostel_matched,student,roomType,luxury)
