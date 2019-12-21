@@ -1,11 +1,10 @@
-from .models import HostelAllocation, Room, Student
+from .models import HostelAllocation,Room,Student
 
-cseStudents = Student.objects.filter(student_course="cse").order_by(-student_gpa)
-ecStudent = Student.objects.filter(student_course="ec").order_by(student_gpa)
-mechStudents = Student.objects.filter(student_course="ec").order_by(student_gpa)
-eeStudents = Student.objects.filter(student_course="ee").order_by(student_gpa)
-civilStudents = Student.objects.filter(student_course="civil").order_by(student_gpa)
+all_student = Student.objects.all()
+def checkAvaibility(request, enroll, roomType, luxury):
+    student = Student.objects.filter(enrollment_no=enroll)
+    branch = student.student_course
+    gender = student.student_gender
+    hostel_matched = HostelAllocation.objects.filter(hostel_course=branch, hostel_gender=gender)
 
-
-
-def checkAvaibility(request):
+    
