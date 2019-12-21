@@ -22,6 +22,7 @@ class Room(models.Model):
     room_type = models.CharField(choices=type, max_length=1, default=None)
     room_luxury = models.CharField(choices=luxury, max_length=10, default=None)
     is_room_vacant = models.BooleanField(default=False)
+    hostel = models.ForeignKey(HostelAllocation,on_delete=models.CASCADE)
 
     def str(self):
         return self.room_no
