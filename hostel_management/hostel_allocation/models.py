@@ -2,9 +2,11 @@ from django.db import models
 
 # Create your models here.
 class HostelAllocation(models.Model):
+    gender_choices = [('M', 'Male'), ('F', 'Female')]
+    course_choices = ['CSE', 'IT', 'ECE', 'MECH', 'CIVIL', 'EE']
     hostel_name = models.CharField(max_length=2)
-    hostel_gender = models.CharField(max_length=7)
-    hostel_course = models.CharField(max_length=3)
+    hostel_gender = models.CharField(max_length=7,choices=gender_choices)
+    hostel_course = models.CharField(max_length=3,choices=course_choices)
     hostel_no_of_floor = models.IntegerField()
     hostel_no_of_room = models.IntegerField()
     hostel_no_of_room_available = models.IntegerField()
@@ -30,13 +32,15 @@ class Room(models.Model):
 class Student(models.Model):
     gender_choices = [('M', 'Male'), ('F', 'Female')]
     year_choices = ['UG1', 'UG2', 'UG3', 'UG4', 'PG1', 'PG1']
-    course_choices = ['CSE','IT','ECE','MECH','CIVIL','EE']
+    course_choices = ['CSE','ECE','MECH','CIVIL','EE']
     student_name = models.CharField(max_length=200, null=True)
     student_mobile = models.CharField(max_length=11)
     enrollment_no = models.CharField(max_length=10, unique=True, null=True)
+    student_gpa = models.IntegerField()
     student_gender = models.CharField(choices=gender_choices,max_length=1,default=None,null=True)
     student_year = models.CharField(choices=year_choices,max_length=1,default=None,null=True)
     student_course = models.CharField(choices=course_choices,max_length=8,default=None)
+    physical_problem = models.BooleanField(default=False)
     student_room_no = models.ForeignKey(Room,on_delete=models.CASCADE)
     room_allotted = models.BooleanField(default=False)
 
