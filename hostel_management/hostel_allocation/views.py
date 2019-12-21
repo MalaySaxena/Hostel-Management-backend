@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import HostelAllocation,Room,Student
-
+'''
 # Create your views here.
 all_student = Student.objects.all()
 def checkAvaibility(request, enroll, roomType, luxury):
@@ -104,7 +104,7 @@ def checkAvaibility(request, enroll, roomType, luxury):
                         # need to complete
                         pass
 
-
+'''
 
     '''
     if student.physical_problem == True:
